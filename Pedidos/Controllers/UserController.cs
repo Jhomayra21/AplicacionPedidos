@@ -1,20 +1,59 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Pedidos.Data;
+using Pedidos.Models;
 
 namespace Pedidos.Controllers
 {
     public class UserController : Controller
     {
-        // GET: UserController
-        public ActionResult Index()
+        private readonly ApplicationDbContext _context;
+
+        public UserController(ApplicationDbContext context)
         {
-            return View();
+            _context = context;
+        }
+
+        // GET: UserController
+        public async Task<ActionResult> Index()
+        {
+            try
+            {
+                var users = await _context.Users.ToListAsync();
+                return View(users);
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = "Error al cargar los usuarios: " + ex.Message;
+                return View(new List<UserModel>());
+            }
         }
 
         // GET: UserController/Details/5
-        public ActionResult Details(int id)
+        public async Task<ActionResult> Details(int? id)
         {
-            return View();
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                var user = await _context.Users
+                    .FirstOrDefaultAsync(m => m.Id == id);
+                
+                if (user == null)
+                {
+                    return NotFound();
+                }
+
+                return View(user);
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = "Error al cargar el usuario: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // GET: UserController/Create
@@ -26,58 +65,164 @@ namespace Pedidos.Controllers
         // POST: UserController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public async Task<ActionResult> Create([Bind("Nombre,Email,Password,Rol")] UserModel user)
         {
-            try
+            if (ModelState.IsValid)
             {
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    // Verificar que el email no esté en uso
+                    var existingUser = await _context.Users
+                        .FirstOrDefaultAsync(u => u.Email == user.Email);
+                    
+                    if (existingUser != null)
+                    {
+                        ModelState.AddModelError("Email", "Este email ya está en uso");
+                        return View(user);
+                    }
+
+                    _context.Add(user);
+                    await _context.SaveChangesAsync();
+                    TempData["Success"] = "Usuario creado exitosamente";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", "Error al crear el usuario: " + ex.Message);
+                }
             }
-            catch
-            {
-                return View();
-            }
+            return View(user);
         }
 
         // GET: UserController/Edit/5
-        public ActionResult Edit(int id)
+        public async Task<ActionResult> Edit(int? id)
         {
-            return View();
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                var user = await _context.Users.FindAsync(id);
+                if (user == null)
+                {
+                    return NotFound();
+                }
+                return View(user);
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = "Error al cargar el usuario: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // POST: UserController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public async Task<ActionResult> Edit(int id, [Bind("Id,Nombre,Email,Password,Rol")] UserModel user)
         {
-            try
+            if (id != user.Id)
             {
-                return RedirectToAction(nameof(Index));
+                return NotFound();
             }
-            catch
+
+            if (ModelState.IsValid)
             {
-                return View();
+                try
+                {
+                    var existingUser = await _context.Users
+                        .FirstOrDefaultAsync(u => u.Email == user.Email && u.Id != user.Id);
+                    
+                    if (existingUser != null)
+                    {
+                        ModelState.AddModelError("Email", "Este email ya está en uso por otro usuario");
+                        return View(user);
+                    }
+
+                    _context.Update(user);
+                    await _context.SaveChangesAsync();
+                    TempData["Success"] = "Usuario actualizado exitosamente";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!UserExists(user.Id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", "Error al actualizar el usuario: " + ex.Message);
+                }
             }
+            return View(user);
         }
 
         // GET: UserController/Delete/5
-        public ActionResult Delete(int id)
+        public async Task<ActionResult> Delete(int? id)
         {
-            return View();
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                var user = await _context.Users
+                    .FirstOrDefaultAsync(m => m.Id == id);
+                
+                if (user == null)
+                {
+                    return NotFound();
+                }
+
+                return View(user);
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = "Error al cargar el usuario: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // POST: UserController/Delete/5
-        [HttpPost]
+        [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public async Task<ActionResult> DeleteConfirmed(int id)
         {
             try
             {
+                var user = await _context.Users.FindAsync(id);
+                if (user != null)
+                {
+                    _context.Users.Remove(user);
+                    await _context.SaveChangesAsync();
+                    TempData["Success"] = "Usuario eliminado exitosamente";
+                }
+                else
+                {
+                    TempData["Error"] = "Usuario no encontrado";
+                }
+                
                 return RedirectToAction(nameof(Index));
             }
-            catch
+            catch (Exception ex)
             {
-                return View();
+                TempData["Error"] = "Error al eliminar el usuario: " + ex.Message;
+                return RedirectToAction(nameof(Index));
             }
+        }
+
+        private bool UserExists(int id)
+        {
+            return _context.Users.Any(e => e.Id == id);
         }
     }
 }
