@@ -1,0 +1,186 @@
+@model Pedidos.Models.OrdenModel
+
+@{
+    ViewData["Title"] = "Eliminar Orden";
+}
+
+<div class="container">
+    <h1>@ViewData["Title"] #@Model.Id</h1>
+
+    <div class="alert alert-warning" role="alert">
+        <h4 class="alert-heading"><i class="fas fa-exclamation-triangle"></i> ¿Está seguro de que desea eliminar esta orden?</h4>
+        <p>Esta acción no se puede deshacer. La orden será eliminada permanentemente del sistema.</p>
+        <hr>
+        <p class="mb-0"><strong>Importante:</strong> El stock de los productos será restaurado automáticamente.</p>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4><i class="fas fa-trash"></i> Orden a Eliminar</h4>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-3">ID:</dt>
+                        <dd class="col-sm-9">#@Model.Id</dd>
+                        
+                        <dt class="col-sm-3">Cliente:</dt>
+                        <dd class="col-sm-9">
+                            @if (Model.Cliente != null)
+                            {
+                                <strong>@Model.Cliente.Nombre</strong><br>
+                                <small class="text-muted">@Model.Cliente.Email</small>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Cliente no encontrado</span>
+                            }
+                        </dd>
+                        
+                        <dt class="col-sm-3">Fecha:</dt>
+                        <dd class="col-sm-9">@Model.Fecha.ToString("dd/MM/yyyy HH:mm")</dd>
+                        
+                        <dt class="col-sm-3">Estado:</dt>
+                        <dd class="col-sm-9">
+                            <span class="badge @(Model.Estado == "Pendiente" ? "bg-warning" : 
+                                              Model.Estado == "Procesado" ? "bg-info" : 
+                                              Model.Estado == "Enviado" ? "bg-primary" : 
+                                              Model.Estado == "Entregado" ? "bg-success" : "bg-secondary") fs-6">
+                                @Model.Estado
+                            </span>
+                        </dd>
+                        
+                        <dt class="col-sm-3">Total:</dt>
+                        <dd class="col-sm-9">
+                            <span class="h4 text-success fw-bold">$@Model.Total.ToString("F2")</span>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+            
+            <!-- Productos en la orden -->
+            @if (Model.Items.Any())
+            {
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5><i class="fas fa-box"></i> Productos en la Orden (@Model.Items.Count)</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Cantidad</th>
+                                        <th>Precio Unit.</th>
+                                        <th>Subtotal</th>
+                                        <th>Stock a Restaurar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.Items)
+                                    {
+                                        <tr>
+                                            <td>@(item.Producto?.Nombre ?? "Producto no encontrado")</td>
+                                            <td><span class="badge bg-info">@item.Cantidad</span></td>
+                                            <td>$@(item.Producto?.Precio.ToString("F2") ?? "0.00")</td>
+                                            <td>$@item.Subtotal.ToString("F2")</td>
+                                            <td>
+                                                <span class="badge bg-success">
+                                                    +@item.Cantidad unidades
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                                <tfoot>
+                                    <tr class="table-light">
+                                        <th colspan="3">Total:</th>
+                                        <th>$@Model.Total.ToString("F2")</th>
+                                        <th>@Model.Items.Sum(i => i.Cantidad) unidades</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card border-warning">
+                <div class="card-header bg-warning">
+                    <h5><i class="fas fa-info-circle"></i> Consecuencias de la Eliminación</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Lo que sucederá:</h6>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-times text-danger"></i> La orden será eliminada permanentemente</li>
+                        <li><i class="fas fa-times text-danger"></i> No se podrá recuperar la información</li>
+                        <li><i class="fas fa-check text-success"></i> El stock de productos será restaurado</li>
+                        <li><i class="fas fa-check text-success"></i> Los productos no serán afectados</li>
+                    </ul>
+                    
+                    <hr>
+                    
+                    <h6>Stock que se restaurará:</h6>
+                    @if (Model.Items.Any())
+                    {
+                        <ul class="list-unstyled">
+                            @foreach (var item in Model.Items)
+                            {
+                                <li class="text-success">
+                                    <i class="fas fa-plus"></i> @item.Cantidad unidades de @(item.Producto?.Nombre ?? "Producto")
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No hay productos que restaurar</p>
+                    }
+                </div>
+            </div>
+            
+            <div class="card mt-3 border-info">
+                <div class="card-header bg-info text-white">
+                    <h5><i class="fas fa-lightbulb"></i> Alternativas</h5>
+                </div>
+                <div class="card-body">
+                    <p>En lugar de eliminar, considere:</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-edit text-warning"></i> Cambiar estado a "Cancelado"</li>
+                        <li><i class="fas fa-edit text-warning"></i> Editar la información</li>
+                        <li><i class="fas fa-archive text-info"></i> Mantener para historial</li>
+                    </ul>
+                    
+                    <div class="d-grid gap-2">
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning btn-sm">
+                            <i class="fas fa-edit"></i> Editar en su lugar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <form asp-action="Delete" class="d-inline">
+            <input type="hidden" asp-for="Id" />
+            <button type="submit" class="btn btn-danger btn-lg" onclick="return confirm('¿Está absolutamente seguro de eliminar esta orden? El stock será restaurado automáticamente.')">
+                <i class="fas fa-trash"></i> Confirmar Eliminación
+            </button>
+        </form>
+        <a asp-action="Index" class="btn btn-secondary btn-lg ms-3">
+            <i class="fas fa-arrow-left"></i> Cancelar y Volver
+        </a>
+    </div>
+
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-danger mt-3" role="alert">
+            @ViewBag.Error
+        </div>
+    }
+</div>

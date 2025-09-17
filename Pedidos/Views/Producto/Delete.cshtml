@@ -1,0 +1,138 @@
+@model Pedidos.Models.ProductoModel
+
+@{
+    ViewData["Title"] = "Eliminar Producto";
+}
+
+<div class="container">
+    <h1>@ViewData["Title"]</h1>
+
+    <div class="alert alert-warning" role="alert">
+        <h4 class="alert-heading"><i class="fas fa-exclamation-triangle"></i> ¿Está seguro de que desea eliminar este producto?</h4>
+        <p>Esta acción no se puede deshacer. El producto será eliminado permanentemente del sistema.</p>
+        <hr>
+        <p class="mb-0"><strong>Nota:</strong> Si el producto está siendo usado en órdenes existentes, no podrá ser eliminado.</p>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4><i class="fas fa-trash"></i> Producto a Eliminar</h4>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-3">
+                            @Html.DisplayNameFor(model => model.Id)
+                        </dt>
+                        <dd class="col-sm-9">
+                            @Html.DisplayFor(model => model.Id)
+                        </dd>
+                        
+                        <dt class="col-sm-3">
+                            @Html.DisplayNameFor(model => model.Nombre)
+                        </dt>
+                        <dd class="col-sm-9">
+                            <strong>@Html.DisplayFor(model => model.Nombre)</strong>
+                        </dd>
+                        
+                        <dt class="col-sm-3">
+                            @Html.DisplayNameFor(model => model.Descripcion)
+                        </dt>
+                        <dd class="col-sm-9">
+                            @if (!string.IsNullOrEmpty(Model.Descripcion))
+                            {
+                                @Html.DisplayFor(model => model.Descripcion)
+                            }
+                            else
+                            {
+                                <em class="text-muted">Sin descripción disponible</em>
+                            }
+                        </dd>
+                        
+                        <dt class="col-sm-3">
+                            @Html.DisplayNameFor(model => model.Precio)
+                        </dt>
+                        <dd class="col-sm-9">
+                            <span class="h5 text-success fw-bold">$@Html.DisplayFor(model => model.Precio)</span>
+                        </dd>
+                        
+                        <dt class="col-sm-3">
+                            @Html.DisplayNameFor(model => model.Stock)
+                        </dt>
+                        <dd class="col-sm-9">
+                            <span class="badge @(Model.Stock > 10 ? "bg-success" : Model.Stock > 0 ? "bg-warning" : "bg-danger") fs-6">
+                                @Html.DisplayFor(model => model.Stock) unidades
+                            </span>
+                        </dd>
+                        
+                        <dt class="col-sm-3">
+                            Estado
+                        </dt>
+                        <dd class="col-sm-9">
+                            @if (Model.Stock > 0)
+                            {
+                                <span class="badge bg-success fs-6">Disponible</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger fs-6">Agotado</span>
+                            }
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card border-warning">
+                <div class="card-header bg-warning">
+                    <h5><i class="fas fa-info-circle"></i> Información Importante</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Al eliminar este producto:</h6>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-times text-danger"></i> Se perderá toda la información</li>
+                        <li><i class="fas fa-times text-danger"></i> No se podrá recuperar</li>
+                        <li><i class="fas fa-times text-danger"></i> Las órdenes existentes lo mantendrán</li>
+                    </ul>
+                    
+                    <hr>
+                    
+                    <h6>Alternativas:</h6>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success"></i> Marcar stock en 0</li>
+                        <li><i class="fas fa-check text-success"></i> Editar la información</li>
+                        <li><i class="fas fa-check text-success"></i> Suspender temporalmente</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <div class="row">
+            <div class="col-12">
+                <form asp-action="Delete" class="d-inline">
+                    <input type="hidden" asp-for="Id" />
+                    <button type="submit" class="btn btn-danger btn-lg" onclick="return confirm('¿Está absolutamente seguro de eliminar este producto?')">
+                        <i class="fas fa-trash"></i> Confirmar Eliminación
+                    </button>
+                </form>
+                <a asp-action="Index" class="btn btn-secondary btn-lg ms-3">
+                    <i class="fas fa-arrow-left"></i> Cancelar y Volver
+                </a>
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning btn-lg ms-2">
+                    <i class="fas fa-edit"></i> Editar en su lugar
+                </a>
+            </div>
+        </div>
+    </div>
+
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-danger mt-3" role="alert">
+            @ViewBag.Error
+        </div>
+    }
+</div>

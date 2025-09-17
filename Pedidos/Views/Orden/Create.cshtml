@@ -1,0 +1,106 @@
+@model Pedidos.Models.OrdenModel
+
+@{
+    ViewData["Title"] = "Crear Orden";
+}
+
+<div class="container">
+    <h1>@ViewData["Title"]</h1>
+
+    <hr />
+    <div class="row">
+        <div class="col-md-8">
+            <form asp-action="Create">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                
+                <div class="form-group mb-3">
+                    <label for="ClienteId" class="control-label">Cliente</label>
+                    <select asp-for="ClienteId" class="form-control" required>
+                        <option value="">-- Seleccione un cliente --</option>
+                        @if (ViewBag.Clientes != null)
+                        {
+                            @foreach (var cliente in (List<Pedidos.Models.UserModel>)ViewBag.Clientes)
+                            {
+                                <option value="@cliente.Id">@cliente.Nombre - @cliente.Email</option>
+                            }
+                        }
+                    </select>
+                    <span asp-validation-for="ClienteId" class="text-danger"></span>
+                    <div class="form-text">Seleccione el cliente que realizará el pedido</div>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label asp-for="Estado" class="control-label"></label>
+                    <select asp-for="Estado" class="form-control">
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="Procesado">Procesado</option>
+                        <option value="Enviado">Enviado</option>
+                        <option value="Entregado">Entregado</option>
+                    </select>
+                    <span asp-validation-for="Estado" class="text-danger"></span>
+                    <div class="form-text">Estado inicial de la orden</div>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <input type="submit" value="Crear Orden" class="btn btn-primary" />
+                    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle"></i> Información</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Proceso de creación:</h6>
+                    <ol>
+                        <li>Seleccione el cliente</li>
+                        <li>Establezca el estado inicial</li>
+                        <li>Cree la orden</li>
+                        <li>Agregue productos a la orden</li>
+                    </ol>
+                    
+                    <hr>
+                    
+                    <h6>Estados de orden:</h6>
+                    <ul class="list-unstyled">
+                        <li><span class="badge bg-warning">Pendiente</span> Recién creada</li>
+                        <li><span class="badge bg-info">Procesado</span> En preparación</li>
+                        <li><span class="badge bg-primary">Enviado</span> En tránsito</li>
+                        <li><span class="badge bg-success">Entregado</span> Completada</li>
+                    </ul>
+                    
+                    <hr>
+                    
+                    <div class="alert alert-info" role="alert">
+                        <small>
+                            <i class="fas fa-lightbulb"></i> 
+                            Después de crear la orden, podrá agregar productos desde la página de detalles.
+                        </small>
+                    </div>
+                </div>
+            </div>
+            
+            @if (ViewBag.Clientes != null && !((List<Pedidos.Models.UserModel>)ViewBag.Clientes).Any())
+            {
+                <div class="card mt-3 border-warning">
+                    <div class="card-header bg-warning">
+                        <h6><i class="fas fa-exclamation-triangle"></i> Advertencia</h6>
+                    </div>
+                    <div class="card-body">
+                        <p>No hay clientes registrados en el sistema.</p>
+                        <a asp-controller="User" asp-action="Create" class="btn btn-sm btn-primary">
+                            <i class="fas fa-user-plus"></i> Crear Cliente
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

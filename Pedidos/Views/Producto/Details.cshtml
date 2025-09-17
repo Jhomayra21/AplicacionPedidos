@@ -1,0 +1,148 @@
+@model Pedidos.Models.ProductoModel
+
+@{
+    ViewData["Title"] = "Detalles del Producto";
+}
+
+<div class="container">
+    <h1>@ViewData["Title"]</h1>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-box"></i> @Model.Nombre</h4>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-3">
+                            @Html.DisplayNameFor(model => model.Id)
+                        </dt>
+                        <dd class="col-sm-9">
+                            @Html.DisplayFor(model => model.Id)
+                        </dd>
+                        
+                        <dt class="col-sm-3">
+                            @Html.DisplayNameFor(model => model.Nombre)
+                        </dt>
+                        <dd class="col-sm-9">
+                            <strong>@Html.DisplayFor(model => model.Nombre)</strong>
+                        </dd>
+                        
+                        <dt class="col-sm-3">
+                            @Html.DisplayNameFor(model => model.Descripcion)
+                        </dt>
+                        <dd class="col-sm-9">
+                            @if (!string.IsNullOrEmpty(Model.Descripcion))
+                            {
+                                @Html.DisplayFor(model => model.Descripcion)
+                            }
+                            else
+                            {
+                                <em class="text-muted">Sin descripción disponible</em>
+                            }
+                        </dd>
+                        
+                        <dt class="col-sm-3">
+                            @Html.DisplayNameFor(model => model.Precio)
+                        </dt>
+                        <dd class="col-sm-9">
+                            <span class="h4 text-success fw-bold">$@Html.DisplayFor(model => model.Precio)</span>
+                        </dd>
+                        
+                        <dt class="col-sm-3">
+                            @Html.DisplayNameFor(model => model.Stock)
+                        </dt>
+                        <dd class="col-sm-9">
+                            <span class="badge @(Model.Stock > 10 ? "bg-success" : Model.Stock > 0 ? "bg-warning" : "bg-danger") fs-6">
+                                @Html.DisplayFor(model => model.Stock) unidades disponibles
+                            </span>
+                        </dd>
+                        
+                        <dt class="col-sm-3">
+                            Estado
+                        </dt>
+                        <dd class="col-sm-9">
+                            @if (Model.Stock > 0)
+                            {
+                                <span class="badge bg-success fs-6">Disponible</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger fs-6">Agotado</span>
+                            }
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-line"></i> Información Adicional</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Estado del Inventario:</h6>
+                    @if (Model.Stock > 10)
+                    {
+                        <div class="alert alert-success" role="alert">
+                            <i class="fas fa-check-circle"></i> Stock suficiente
+                        </div>
+                    }
+                    else if (Model.Stock > 0)
+                    {
+                        <div class="alert alert-warning" role="alert">
+                            <i class="fas fa-exclamation-triangle"></i> Stock bajo - Considere reabastecer
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            <i class="fas fa-times-circle"></i> Producto agotado
+                        </div>
+                    }
+                    
+                    <hr>
+                    
+                    <h6>Categorización por precio:</h6>
+                    @if (Model.Precio <= 10)
+                    {
+                        <span class="badge bg-info">Producto económico</span>
+                    }
+                    else if (Model.Precio <= 50)
+                    {
+                        <span class="badge bg-primary">Precio medio</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning">Producto premium</span>
+                    }
+                </div>
+            </div>
+            
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5><i class="fas fa-cogs"></i> Acciones</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Editar Producto
+                        </a>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Volver a la Lista
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-danger mt-3" role="alert">
+            @ViewBag.Error
+        </div>
+    }
+</div>

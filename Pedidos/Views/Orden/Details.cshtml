@@ -1,0 +1,272 @@
+@model Pedidos.Models.OrdenModel
+
+@{
+    ViewData["Title"] = "Detalles del Pedido";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>@ViewData["Title"] #@Model.Id</h1>
+                <div>
+                    <span class="badge @(Model.Estado == "Pendiente" ? "bg-warning" : 
+                                      Model.Estado == "Procesado" ? "bg-info" : 
+                                      Model.Estado == "Enviado" ? "bg-primary" : 
+                                      Model.Estado == "Entregado" ? "bg-success" : "bg-secondary") fs-6">
+                        @Model.Estado
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row">
+        <!-- Información de la Orden -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle"></i> Información de la Orden</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-5">ID:</dt>
+                        <dd class="col-sm-7">#@Model.Id</dd>
+                        
+                        <dt class="col-sm-5">Cliente:</dt>
+                        <dd class="col-sm-7">
+                            @if (Model.Cliente != null)
+                            {
+                                <strong>@Model.Cliente.Nombre</strong><br>
+                                <small class="text-muted">@Model.Cliente.Email</small>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Cliente no encontrado</span>
+                            }
+                        </dd>
+                        
+                        <dt class="col-sm-5">Fecha:</dt>
+                        <dd class="col-sm-7">@Model.Fecha.ToString("dd/MM/yyyy HH:mm")</dd>
+                        
+                        <dt class="col-sm-5">Estado:</dt>
+                        <dd class="col-sm-7">
+                            <span class="badge @(Model.Estado == "Pendiente" ? "bg-warning" : 
+                                              Model.Estado == "Procesado" ? "bg-info" : 
+                                              Model.Estado == "Enviado" ? "bg-primary" : 
+                                              Model.Estado == "Entregado" ? "bg-success" : "bg-secondary")">
+                                @Model.Estado
+                            </span>
+                        </dd>
+                        
+                        <dt class="col-sm-5">Total:</dt>
+                        <dd class="col-sm-7">
+                            <span class="h4 text-success fw-bold">$@Model.Total.ToString("F2")</span>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Resumen de la Orden -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-pie"></i> Resumen</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Total de productos:</strong> @Model.Items.Count</p>
+                    <p><strong>Cantidad total:</strong> @Model.Items.Sum(i => i.Cantidad) unidades</p>
+                    <p><strong>Valor promedio por producto:</strong> 
+                        @if (Model.Items.Any())
+                        {
+                            <span>$@((Model.Total / Model.Items.Count).ToString("F2"))</span>
+                        }
+                        else
+                        {
+                            <span>$0.00</span>
+                        }
+                    </p>
+                </div>
+            </div>
+
+            <!-- Acciones -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5><i class="fas fa-cogs"></i> Acciones</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Editar Orden
+                        </a>
+                        @if (Model.Estado == "Pendiente")
+                        {
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#agregarProductoModal">
+                                <i class="fas fa-plus"></i> Agregar Producto
+                            </button>
+                        }
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Volver a la Lista
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Productos en la Orden -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-shopping-cart"></i> Productos en la Orden (@Model.Items.Count)</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.Items.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Precio Unit.</th>
+                                        <th>Cantidad</th>
+                                        <th>Subtotal</th>
+                                        <th>% del Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.Items)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div>
+                                                    <strong>@(item.Producto?.Nombre ?? "Producto no encontrado")</strong>
+                                                    @if (!string.IsNullOrEmpty(item.Producto?.Descripcion))
+                                                    {
+                                                        <br><small class="text-muted">@(item.Producto.Descripcion.Length > 50 ? item.Producto.Descripcion.Substring(0, 50) + "..." : item.Producto.Descripcion)</small>
+                                                    }
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="text-success fw-bold">$@(item.Producto?.Precio.ToString("F2") ?? "0.00")</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-info">@item.Cantidad</span>
+                                            </td>
+                                            <td>
+                                                <span class="fw-bold">$@item.Subtotal.ToString("F2")</span>
+                                            </td>
+                                            <td>
+                                                @if (Model.Total > 0)
+                                                {
+                                                    <span class="text-muted">@(((item.Subtotal / Model.Total) * 100).ToString("F1"))%</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">0%</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                                <tfoot class="table-light">
+                                    <tr>
+                                        <th colspan="3">Total de la Orden:</th>
+                                        <th><span class="h5 text-success">$@Model.Total.ToString("F2")</span></th>
+                                        <th>100%</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info" role="alert">
+                            <h4 class="alert-heading">No hay productos en esta orden</h4>
+                            <p>Esta orden aún no tiene productos agregados.</p>
+                            <hr>
+                            @if (Model.Estado == "Pendiente")
+                            {
+                                <p class="mb-0">
+                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#agregarProductoModal">
+                                        <i class="fas fa-plus"></i> Agregar el primer producto
+                                    </button>
+                                </p>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para agregar productos -->
+@if (Model.Estado == "Pendiente")
+{
+    <div class="modal fade" id="agregarProductoModal" tabindex="-1" aria-labelledby="agregarProductoModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="agregarProductoModalLabel">
+                        <i class="fas fa-plus"></i> Agregar Producto a la Orden
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form asp-action="AgregarProducto" method="post">
+                    <div class="modal-body">
+                        <input type="hidden" name="ordenId" value="@Model.Id" />
+                        
+                        <div class="mb-3">
+                            <label for="productoId" class="form-label">Producto:</label>
+                            <select name="productoId" class="form-select" required>
+                                <option value="">-- Seleccione un producto --</option>
+                                @if (ViewBag.ProductosDisponibles != null)
+                                {
+                                    @foreach (var producto in (List<Pedidos.Models.ProductoModel>)ViewBag.ProductosDisponibles)
+                                    {
+                                        <option value="@producto.Id">
+                                            @producto.Nombre - $@producto.Precio.ToString("F2") (Stock: @producto.Stock)
+                                        </option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="cantidad" class="form-label">Cantidad:</label>
+                            <input type="number" name="cantidad" class="form-control" min="1" value="1" required />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Agregar Producto
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger mt-3" role="alert">
+        @ViewBag.Error
+    </div>
+}
