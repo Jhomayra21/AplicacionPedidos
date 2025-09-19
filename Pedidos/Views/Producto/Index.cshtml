@@ -31,7 +31,6 @@
         </div>
     }
 
-    <!-- Filtros de búsqueda -->
     <div class="card mb-4" style="border-color: #9D8AA8; border-radius: 10px;">
         <div class="card-header" style="background-color: #6D5A7C; color: white;">
             <i class="fas fa-search"></i> Filtrar productos
@@ -68,7 +67,6 @@
         </div>
     </div>
 
-    <!-- Catálogo de productos -->
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
         @foreach (var item in Model)
         {
@@ -83,19 +81,32 @@
                         </p>
                         <div class="d-flex justify-content-between align-items-center mt-3">
                             <span class="h5 fw-bold mb-0" style="color: #4E4259;">$@item.Precio.ToString("F2")</span>
-                            <span class="badge @(item.Stock > 10 ? "bg-success" : item.Stock > 0 ? "bg-warning" : "bg-danger")" style="font-size: 0.9rem;">
-                                @if (item.Stock > 10)
+                            @{
+                                string stockText = "";
+                                string iconClass = "";
+                                string badgeBg = "";
+                                
+                                if (item.Stock > 10)
                                 {
-                                    <i class="fas fa-check-circle me-1"></i> @item.Stock en stock
+                                    stockText = item.Stock + " disponibles";
+                                    iconClass = "fas fa-check-circle";
+                                    badgeBg = "#575E54";
                                 }
                                 else if (item.Stock > 0)
                                 {
-                                    <i class="fas fa-exclamation-circle me-1"></i> @item.Stock restantes
+                                    stockText = item.Stock + " últimos";
+                                    iconClass = "fas fa-exclamation-circle";
+                                    badgeBg = "#B69FBA";
                                 }
                                 else
                                 {
-                                    <i class="fas fa-times-circle me-1"></i> Agotado
+                                    stockText = "Sin stock";
+                                    iconClass = "fas fa-times-circle";
+                                    badgeBg = "#6D5A7C";
                                 }
+                            }
+                            <span class="badge" style="background-color: @badgeBg; color: white; font-size: 0.9rem; padding: 5px 10px;">
+                                <i class="@iconClass me-1"></i> @stockText
                             </span>
                         </div>
                     </div>

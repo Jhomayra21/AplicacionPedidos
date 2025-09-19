@@ -16,9 +16,4 @@
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration" Version="8.0.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Views\DetallePedido\" />
-    <Folder Include="Views\Pedidos\" />
-  </ItemGroup>
-
 </Project>
