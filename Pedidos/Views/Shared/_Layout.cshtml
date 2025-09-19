@@ -3,16 +3,120 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Pedidos</title>
+    <title>@ViewData["Title"] - Sistema de Pedidos</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Pedidos.styles.css" asp-append-version="true" />
-    <!-- FontAwesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        :root {
+            --color-primary: #6D5A7C; 
+            --color-secondary: #E1DBE6;
+            --color-accent: #4E4259;
+            --color-dark: #2B2B35;
+            --color-light: #F2F2F7; 
+            --color-dark-accent: #575E54; 
+        }
+
+        body {
+            background-color: var(--color-light);
+            color: var(--color-dark);
+        }
+
+        .navbar {
+            background-color: var(--color-dark) !important;
+        }
+
+        .navbar-brand, .nav-link {
+            color: white !important;
+        }
+
+        .nav-link:hover {
+            color: var(--color-secondary) !important;
+        }
+
+        .footer {
+            background-color: var(--color-dark);
+            color: white;
+        }
+
+        .footer a {
+            color: var(--color-secondary);
+        }
+
+        .btn-primary {
+            background-color: var(--color-primary);
+            border-color: var(--color-primary);
+        }
+
+        .btn-primary:hover, .btn-primary:focus {
+            background-color: #5A4B69;
+            border-color: #5A4B69;
+        }
+
+        .btn-secondary {
+            background-color: var(--color-dark-accent);
+            border-color: var(--color-dark-accent);
+        }
+
+        .btn-outline-primary {
+            color: var(--color-primary);
+            border-color: var(--color-primary);
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--color-primary);
+            color: white;
+        }
+
+        .card-header {
+            background-color: var(--color-primary);
+            color: white;
+        }
+
+        .badge.bg-success {
+            background-color: var(--color-dark-accent) !important;
+        }
+
+        .badge.bg-info {
+            background-color: #9D8AA8 !important; 
+        }
+
+        .badge.bg-warning {
+            background-color: #B69FBA !important; 
+        }
+
+        .badge.bg-danger {
+            background-color: #6D5A7C !important; 
+        }
+
+        .table-dark {
+            background-color: var(--color-dark);
+        }
+
+        .alert-success {
+            background-color: #E1DBE6;
+            color: var(--color-dark);
+            border-color: #D0C6D8;
+        }
+
+        .text-success {
+            color: var(--color-dark-accent) !important;
+        }
+
+        .text-primary {
+            color: var(--color-primary) !important;
+        }
+
+        .form-control:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 0.25rem rgba(109, 90, 124, 0.25);
+        }
+    </style>
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark border-bottom box-shadow mb-3">
             <div class="container-fluid">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
                     <i class="fas fa-shopping-cart"></i> Sistema de Pedidos
@@ -24,30 +128,86 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
                                 <i class="fas fa-home"></i> Inicio
                             </a>
                         </li>
+                        
+                        @if (User.IsInRole("admin") || User.IsInRole("empleado"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="User" asp-action="Index">
+                                    <i class="fas fa-users"></i> Usuarios
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Producto" asp-action="Index">
+                                    <i class="fas fa-box"></i> Productos
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Orden" asp-action="Index">
+                                    <i class="fas fa-receipt"></i> Órdenes
+                                </a>
+                            </li>
+                        }
+                        else if (User.IsInRole("cliente"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Carrito" asp-action="CatalogoProductos">
+                                    <i class="fas fa-store"></i> Catálogo
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Carrito" asp-action="Index">
+                                    <i class="fas fa-shopping-cart"></i> Mi Carrito
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Carrito" asp-action="MisPedidos">
+                                    <i class="fas fa-box"></i> Mis Pedidos
+                                </a>
+                            </li>
+                        }
+                        
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="Index">
-                                <i class="fas fa-users"></i> Usuarios
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Producto" asp-action="Index">
-                                <i class="fas fa-box"></i> Productos
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Orden" asp-action="Index">
-                                <i class="fas fa-receipt"></i> Órdenes
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Privacy">
                                 <i class="fas fa-shield-alt"></i> Privacidad
                             </a>
                         </li>
+                    </ul>
+                    <ul class="navbar-nav">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-user-circle"></i> @User.Identity.Name
+                                    @if (User.IsInRole("admin"))
+                                    {
+                                        <span class="badge" style="background-color: #4E4259;">Admin</span>
+                                    }
+                                    else if (User.IsInRole("empleado"))
+                                    {
+                                        <span class="badge" style="background-color: #6D5A7C;">Empleado</span>
+                                    }
+                                    else if (User.IsInRole("cliente"))
+                                    {
+                                        <span class="badge" style="background-color: #9D8AA8;">Cliente</span>
+                                    }
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                    <li><a class="dropdown-item" asp-controller="Account" asp-action="Logout"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a></li>
+                                </ul>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Account" asp-action="Login">
+                                    <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                                </a>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>
@@ -60,8 +220,15 @@
     </div>
 
     <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - Sistema de Pedidos - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacidad</a>
+        <div class="container py-3">
+            <div class="row">
+                <div class="col-md-6">
+                    &copy; 2025 - Sistema de Pedidos - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacidad</a>
+                </div>
+                <div class="col-md-6 text-end">
+                    <small>Diseñado con <i class="fas fa-heart" style="color: #9D8AA8;"></i> para una experiencia elegante</small>
+                </div>
+            </div>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
