@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Detalles del Pedido";
+    var estadoActual = Model.Estado;
 }
 
 <div class="container">
@@ -38,7 +39,6 @@
     }
 
     <div class="row">
-        <!-- Información de la Orden -->
         <div class="col-md-4">
             <div class="card">
                 <div class="card-header">
@@ -80,10 +80,37 @@
                             <span class="h4 text-success fw-bold">$@Model.Total.ToString("F2")</span>
                         </dd>
                     </dl>
+                    
+                    <form asp-action="CambiarEstado" method="post" class="mt-3">
+                        <input type="hidden" name="ordenId" value="@Model.Id" />
+                        <div class="input-group">
+                            <select name="nuevoEstado" class="form-select">
+                                <option value="Pendiente">Pendiente</option>
+                                <option value="Procesado">Procesado</option>
+                                <option value="Enviado">Enviado</option>
+                                <option value="Entregado">Entregado</option>
+                            </select>
+                            <button class="btn btn-outline-primary" type="submit">
+                                <i class="fas fa-sync-alt"></i> Actualizar Estado
+                            </button>
+                        </div>
+                    </form>
+
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            var estadoActual = "@estadoActual";
+                            var selectElement = document.querySelector('select[name="nuevoEstado"]');
+                            for (var i = 0; i < selectElement.options.length; i++) {
+                                if (selectElement.options[i].value === estadoActual) {
+                                    selectElement.options[i].selected = true;
+                                    break;
+                                }
+                            }
+                        });
+                    </script>
                 </div>
             </div>
 
-            <!-- Resumen de la Orden -->
             <div class="card mt-3">
                 <div class="card-header">
                     <h5><i class="fas fa-chart-pie"></i> Resumen</h5>
@@ -104,7 +131,6 @@
                 </div>
             </div>
 
-            <!-- Acciones -->
             <div class="card mt-3">
                 <div class="card-header">
                     <h5><i class="fas fa-cogs"></i> Acciones</h5>
@@ -128,7 +154,6 @@
             </div>
         </div>
 
-        <!-- Productos en la Orden -->
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header">
@@ -215,7 +240,6 @@
     </div>
 </div>
 
-<!-- Modal para agregar productos -->
 @if (Model.Estado == "Pendiente")
 {
     <div class="modal fade" id="agregarProductoModal" tabindex="-1" aria-labelledby="agregarProductoModalLabel" aria-hidden="true">
