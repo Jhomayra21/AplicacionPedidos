@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 using Pedidos.Data;
 using Pedidos.Models;
 
 namespace Pedidos.Controllers
 {
+    [Authorize(Policy = "AdminOnly")]
     public class UserController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -71,7 +73,6 @@ namespace Pedidos.Controllers
             {
                 try
                 {
-                    // Verificar que el email no esté en uso
                     var existingUser = await _context.Users
                         .FirstOrDefaultAsync(u => u.Email == user.Email);
                     
@@ -133,29 +134,18 @@ namespace Pedidos.Controllers
                 try
                 {
                     var existingUser = await _context.Users
-                        .FirstOrDefaultAsync(u => u.Email == user.Email && u.Id != user.Id);
+                        .FirstOrDefaultAsync(u => u.Email == user.Email && u.Id != id);
                     
                     if (existingUser != null)
                     {
                         ModelState.AddModelError("Email", "Este email ya está en uso por otro usuario");
                         return View(user);
                     }
-
+                    
                     _context.Update(user);
                     await _context.SaveChangesAsync();
                     TempData["Success"] = "Usuario actualizado exitosamente";
                     return RedirectToAction(nameof(Index));
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!UserExists(user.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
                 }
                 catch (Exception ex)
                 {
@@ -202,6 +192,13 @@ namespace Pedidos.Controllers
                 var user = await _context.Users.FindAsync(id);
                 if (user != null)
                 {
+                    var tieneOrdenes = await _context.Ordenes.AnyAsync(o => o.ClienteId == id);
+                    if (tieneOrdenes)
+                    {
+                        TempData["Error"] = "No se puede eliminar el usuario porque tiene órdenes asociadas";
+                        return RedirectToAction(nameof(Index));
+                    }
+                    
                     _context.Users.Remove(user);
                     await _context.SaveChangesAsync();
                     TempData["Success"] = "Usuario eliminado exitosamente";
@@ -218,11 +215,6 @@ namespace Pedidos.Controllers
                 TempData["Error"] = "Error al eliminar el usuario: " + ex.Message;
                 return RedirectToAction(nameof(Index));
             }
-        }
-
-        private bool UserExists(int id)
-        {
-            return _context.Users.Any(e => e.Id == id);
         }
     }
 }

@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 using Pedidos.Data;
 using Pedidos.Models;
 
 namespace Pedidos.Controllers
 {
+    [Authorize(Policy = "EmployeeAccess")]
     public class OrdenController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -53,12 +55,11 @@ namespace Pedidos.Controllers
                     return NotFound();
                 }
 
-                // Cargar productos disponibles para agregar a la orden
                 ViewBag.ProductosDisponibles = await _context.Productos
                     .Where(p => p.Stock > 0)
                     .ToListAsync();
 
-                return View(orden);
+                return View( orden);
             }
             catch (Exception ex)
             {
@@ -97,7 +98,7 @@ namespace Pedidos.Controllers
                 if (ModelState.IsValid)
                 {
                     orden.Fecha = DateTime.Now;
-                    orden.Total = 0; // Se calculará al agregar items
+                    orden.Total = 0;
                     
                     _context.Add(orden);
                     await _context.SaveChangesAsync();
@@ -110,7 +111,6 @@ namespace Pedidos.Controllers
                 ModelState.AddModelError("", "Error al crear la orden: " + ex.Message);
             }
 
-            // Recargar datos si hay error
             ViewBag.Clientes = await _context.Users
                 .Where(u => u.Rol == "cliente")
                 .ToListAsync();
@@ -191,6 +191,7 @@ namespace Pedidos.Controllers
         }
 
         // GET: Orden/Delete/5
+        [Authorize(Policy = "AdminOnly")]
         public async Task<ActionResult> Delete(int? id)
         {
             if (id == null)
@@ -223,6 +224,7 @@ namespace Pedidos.Controllers
         // POST: Orden/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<ActionResult> DeleteConfirmed(int id)
         {
             try
@@ -233,7 +235,6 @@ namespace Pedidos.Controllers
                 
                 if (orden != null)
                 {
-                    // Restaurar stock de productos
                     foreach (var item in orden.Items)
                     {
                         var producto = await _context.Productos.FindAsync(item.ProductoId);
@@ -261,7 +262,6 @@ namespace Pedidos.Controllers
             }
         }
 
-        // Método para agregar productos a una orden
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> AgregarProducto(int ordenId, int productoId, int cantidad)
@@ -286,12 +286,10 @@ namespace Pedidos.Controllers
                     return RedirectToAction(nameof(Details), new { id = ordenId });
                 }
 
-                // Verificar si el producto ya está en la orden
                 var itemExistente = orden.Items.FirstOrDefault(i => i.ProductoId == productoId);
                 
                 if (itemExistente != null)
                 {
-                    // Actualizar cantidad existente
                     if (producto.Stock < (itemExistente.Cantidad + cantidad))
                     {
                         TempData["Error"] = $"Stock insuficiente. Solo hay {producto.Stock} unidades disponibles y ya tiene {itemExistente.Cantidad} en la orden";
@@ -303,7 +301,6 @@ namespace Pedidos.Controllers
                 }
                 else
                 {
-                    // Crear nuevo item
                     var nuevoItem = new OrdenItem
                     {
                         OrdenId = ordenId,
@@ -315,10 +312,8 @@ namespace Pedidos.Controllers
                     _context.OrdenItems.Add(nuevoItem);
                 }
 
-                // Reducir stock
                 producto.Stock -= cantidad;
                 
-                // Recalcular total de la orden
                 await _context.SaveChangesAsync();
                 await RecalcularTotal(ordenId);
                 
@@ -328,6 +323,40 @@ namespace Pedidos.Controllers
             catch (Exception ex)
             {
                 TempData["Error"] = "Error al agregar producto: " + ex.Message;
+                return RedirectToAction(nameof(Details), new { id = ordenId });
+            }
+        }
+
+        // POST: Orden/CambiarEstado/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> CambiarEstado(int ordenId, string nuevoEstado)
+        {
+            try
+            {
+                if (!new[] { "Pendiente", "Procesado", "Enviado", "Entregado" }.Contains(nuevoEstado))
+                {
+                    TempData["Error"] = "Estado no válido";
+                    return RedirectToAction(nameof(Details), new { id = ordenId });
+                }
+
+                var orden = await _context.Ordenes.FindAsync(ordenId);
+                if (orden == null)
+                {
+                    TempData["Error"] = "Orden no encontrada";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                string estadoAnterior = orden.Estado;
+                orden.Estado = nuevoEstado;
+                await _context.SaveChangesAsync();
+
+                TempData["Success"] = $"Estado cambiado de '{estadoAnterior}' a '{nuevoEstado}' exitosamente";
+                return RedirectToAction(nameof(Details), new { id = ordenId });
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error al cambiar el estado de la orden: " + ex.Message;
                 return RedirectToAction(nameof(Details), new { id = ordenId });
             }
         }

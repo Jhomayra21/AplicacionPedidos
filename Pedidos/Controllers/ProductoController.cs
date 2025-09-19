@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 using Pedidos.Data;
 using Pedidos.Models;
 
@@ -57,6 +58,7 @@ namespace Pedidos.Controllers
         }
 
         // GET: Producto/Create
+        [Authorize(Policy = "EmployeeAccess")]
         public ActionResult Create()
         {
             return View();
@@ -65,6 +67,7 @@ namespace Pedidos.Controllers
         // POST: Producto/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Policy = "EmployeeAccess")]
         public async Task<ActionResult> Create([Bind("Nombre,Descripcion,Precio,Stock")] ProductoModel producto)
         {
             if (ModelState.IsValid)
@@ -94,6 +97,7 @@ namespace Pedidos.Controllers
         }
 
         // GET: Producto/Edit/5
+        [Authorize(Policy = "EmployeeAccess")]
         public async Task<ActionResult> Edit(int? id)
         {
             if (id == null)
@@ -117,9 +121,9 @@ namespace Pedidos.Controllers
             }
         }
 
-        // POST: Producto/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Policy = "EmployeeAccess")]
         public async Task<ActionResult> Edit(int id, [Bind("Id,Nombre,Descripcion,Precio,Stock")] ProductoModel producto)
         {
             if (id != producto.Id)
@@ -131,7 +135,6 @@ namespace Pedidos.Controllers
             {
                 try
                 {
-                    // Verificar que el nombre del producto no esté en uso por otro producto
                     var existingProduct = await _context.Productos
                         .FirstOrDefaultAsync(p => p.Nombre.ToLower() == producto.Nombre.ToLower() && p.Id != producto.Id);
                     
@@ -165,7 +168,7 @@ namespace Pedidos.Controllers
             return View(producto);
         }
 
-        // GET: Producto/Delete/5
+        [Authorize(Policy = "AdminOnly")]
         public async Task<ActionResult> Delete(int? id)
         {
             if (id == null)
@@ -192,9 +195,9 @@ namespace Pedidos.Controllers
             }
         }
 
-        // POST: Producto/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<ActionResult> DeleteConfirmed(int id)
         {
             try
@@ -202,7 +205,6 @@ namespace Pedidos.Controllers
                 var producto = await _context.Productos.FindAsync(id);
                 if (producto != null)
                 {
-                    // Verificar si el producto está siendo usado en alguna orden
                     var isUsedInOrder = await _context.OrdenItems
                         .AnyAsync(oi => oi.ProductoId == id);
                     
@@ -235,7 +237,6 @@ namespace Pedidos.Controllers
             return _context.Productos.Any(e => e.Id == id);
         }
 
-        // Método adicional para búsqueda y filtrado
         [HttpGet]
         public async Task<ActionResult> Search(string searchString, decimal? minPrice, decimal? maxPrice)
         {

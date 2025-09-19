@@ -33,14 +33,12 @@ namespace Pedidos.Controllers
 
             try
             {
-                // Validar datos de entrada
                 if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
                 {
                     ModelState.AddModelError("", "Debe proporcionar email y contraseña");
                     return View();
                 }
 
-                // Verificar si existe el usuario
                 var user = await _context.Users
                     .FirstOrDefaultAsync(u => u.Email == email && u.Password == password);
 
@@ -50,7 +48,6 @@ namespace Pedidos.Controllers
                     return View();
                 }
 
-                // Crear las claims para el usuario
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.Name, user.Nombre),
@@ -62,14 +59,12 @@ namespace Pedidos.Controllers
                 var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                 var principal = new ClaimsPrincipal(identity);
 
-                // Iniciar sesión
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, new AuthenticationProperties
                 {
                     IsPersistent = true,
                     ExpiresUtc = DateTime.UtcNow.AddHours(8)
                 });
 
-                // Redireccionar
                 if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                 {
                     return Redirect(returnUrl);
