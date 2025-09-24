@@ -1,4 +1,4 @@
-ï»¿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using Pedidos.Data;
@@ -29,7 +29,7 @@ namespace Pedidos.Controllers
             }
             catch (Exception ex)
             {
-                ViewBag.Error = "Error al cargar las Ã³rdenes: " + ex.Message;
+                ViewBag.Error = "Error al cargar las órdenes: " + ex.Message;
                 return View(new List<OrdenModel>());
             }
         }
@@ -59,7 +59,7 @@ namespace Pedidos.Controllers
                     .Where(p => p.Stock > 0)
                     .ToListAsync();
 
-                return View( orden);
+                return View(orden);
             }
             catch (Exception ex)
             {
@@ -79,30 +79,107 @@ namespace Pedidos.Controllers
                 ViewBag.Productos = await _context.Productos
                     .Where(p => p.Stock > 0)
                     .ToListAsync();
-                return View();
+                
+                return View(new CreateOrdenViewModel
+                {
+                    SelectedProducts = new List<SelectedProductViewModel>()
+                });
             }
             catch (Exception ex)
             {
                 ViewBag.Error = "Error al cargar datos: " + ex.Message;
-                return View();
+                return View(new CreateOrdenViewModel());
             }
         }
 
         // POST: Orden/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Create([Bind("ClienteId,Estado")] OrdenModel orden)
+        public async Task<ActionResult> Create(CreateOrdenViewModel viewModel)
         {
             try
             {
                 if (ModelState.IsValid)
                 {
-                    orden.Fecha = DateTime.Now;
-                    orden.Total = 0;
+                    // Verificar que haya al menos un producto seleccionado
+                    if (viewModel.SelectedProducts == null || !viewModel.SelectedProducts.Any(p => p.Cantidad > 0))
+                    {
+                        ModelState.AddModelError("", "Debe seleccionar al menos un producto con cantidad mayor a 0");
+                        
+                        ViewBag.Clientes = await _context.Users
+                            .Where(u => u.Rol == "cliente")
+                            .ToListAsync();
+                        ViewBag.Productos = await _context.Productos
+                            .Where(p => p.Stock > 0)
+                            .ToListAsync();
+                        
+                        return View(viewModel);
+                    }
+
+                    // Verificar stock de productos
+                    foreach (var selectedProduct in viewModel.SelectedProducts.Where(p => p.Cantidad > 0))
+                    {
+                        var producto = await _context.Productos.FindAsync(selectedProduct.ProductoId);
+                        if (producto == null || producto.Stock < selectedProduct.Cantidad)
+                        {
+                            ModelState.AddModelError("", 
+                                $"Stock insuficiente para el producto {producto?.Nombre ?? "desconocido"}. " +
+                                $"Disponible: {producto?.Stock ?? 0}, Solicitado: {selectedProduct.Cantidad}");
+                            
+                            ViewBag.Clientes = await _context.Users
+                                .Where(u => u.Rol == "cliente")
+                                .ToListAsync();
+                            ViewBag.Productos = await _context.Productos
+                                .Where(p => p.Stock > 0)
+                                .ToListAsync();
+                            
+                            return View(viewModel);
+                        }
+                    }
+
+                    // Crear la orden
+                    var orden = new OrdenModel
+                    {
+                        ClienteId = viewModel.ClienteId,
+                        Fecha = DateTime.Now,
+                        Estado = viewModel.Estado,
+                        Total = 0
+                    };
                     
-                    _context.Add(orden);
+                    _context.Ordenes.Add(orden);
                     await _context.SaveChangesAsync();
-                    TempData["Success"] = "Orden creada exitosamente. Ahora puede agregar productos.";
+
+                    decimal total = 0;
+
+                    // Agregar los productos seleccionados
+                    foreach (var selectedProduct in viewModel.SelectedProducts.Where(p => p.Cantidad > 0))
+                    {
+                        var producto = await _context.Productos.FindAsync(selectedProduct.ProductoId);
+                        if (producto != null)
+                        {
+                            var subtotal = producto.Precio * selectedProduct.Cantidad;
+                            total += subtotal;
+                            
+                            var ordenItem = new OrdenItem
+                            {
+                                OrdenId = orden.Id,
+                                ProductoId = producto.Id,
+                                Cantidad = selectedProduct.Cantidad,
+                                Subtotal = subtotal
+                            };
+                            
+                            _context.OrdenItems.Add(ordenItem);
+                            
+                            // Reducir el stock
+                            producto.Stock -= selectedProduct.Cantidad;
+                        }
+                    }
+
+                    // Actualizar el total de la orden
+                    orden.Total = total;
+                    await _context.SaveChangesAsync();
+
+                    TempData["Success"] = "Orden creada exitosamente con los productos seleccionados";
                     return RedirectToAction(nameof(Details), new { id = orden.Id });
                 }
             }
@@ -117,7 +194,22 @@ namespace Pedidos.Controllers
             ViewBag.Productos = await _context.Productos
                 .Where(p => p.Stock > 0)
                 .ToListAsync();
-            return View(orden);
+            
+            return View(viewModel);
+        }
+
+        // POST: Orden/AddSelectedProduct
+        [HttpPost]
+        public IActionResult AddSelectedProduct([FromBody] CreateOrdenViewModel model)
+        {
+            if (model.SelectedProducts == null)
+            {
+                model.SelectedProducts = new List<SelectedProductViewModel>();
+            }
+            
+            model.SelectedProducts.Add(new SelectedProductViewModel { ProductoId = 0, Cantidad = 1 });
+            
+            return PartialView("_SelectedProductsPartial", model);
         }
 
         // GET: Orden/Edit/5
@@ -336,7 +428,7 @@ namespace Pedidos.Controllers
             {
                 if (!new[] { "Pendiente", "Procesado", "Enviado", "Entregado" }.Contains(nuevoEstado))
                 {
-                    TempData["Error"] = "Estado no vÃ¡lido";
+                    TempData["Error"] = "Estado no válido";
                     return RedirectToAction(nameof(Details), new { id = ordenId });
                 }
 
@@ -378,5 +470,18 @@ namespace Pedidos.Controllers
         {
             return _context.Ordenes.Any(e => e.Id == id);
         }
+    }
+
+    public class CreateOrdenViewModel
+    {
+        public int ClienteId { get; set; }
+        public string Estado { get; set; } = "Pendiente";
+        public List<SelectedProductViewModel> SelectedProducts { get; set; } = new List<SelectedProductViewModel>();
+    }
+
+    public class SelectedProductViewModel
+    {
+        public int ProductoId { get; set; }
+        public int Cantidad { get; set; }
     }
 }

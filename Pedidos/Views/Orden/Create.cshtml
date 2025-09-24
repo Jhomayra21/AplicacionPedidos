@@ -1,4 +1,4 @@
-@model Pedidos.Models.OrdenModel
+@model Pedidos.Controllers.CreateOrdenViewModel
 
 @{
     ViewData["Title"] = "Crear Orden";
@@ -10,7 +10,7 @@
     <hr />
     <div class="row">
         <div class="col-md-8">
-            <form asp-action="Create">
+            <form asp-action="Create" id="createOrderForm">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 
                 <div class="form-group mb-3">
@@ -30,7 +30,7 @@
                 </div>
                 
                 <div class="form-group mb-3">
-                    <label asp-for="Estado" class="control-label"></label>
+                    <label asp-for="Estado" class="control-label">Estado</label>
                     <select asp-for="Estado" class="form-control">
                         <option value="Pendiente">Pendiente</option>
                         <option value="Procesado">Procesado</option>
@@ -41,9 +41,39 @@
                     <div class="form-text">Estado inicial de la orden</div>
                 </div>
                 
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-shopping-cart"></i> Productos en la Orden</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="selectedProductsContainer">
+                            @if (Model.SelectedProducts == null || !Model.SelectedProducts.Any())
+                            {
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i> No hay productos seleccionados. Agregue al menos un producto.
+                                </div>
+                            }
+                            else
+                            {
+                                <partial name="_SelectedProductsPartial" model="Model" />
+                            }
+                        </div>
+                        
+                        <div class="mt-3">
+                            <button type="button" id="addProductButton" class="btn btn-success">
+                                <i class="fas fa-plus"></i> Agregar otro producto
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="form-group mb-3">
-                    <input type="submit" value="Crear Orden" class="btn btn-primary" />
-                    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Crear Orden
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancelar
+                    </a>
                 </div>
             </form>
         </div>
@@ -58,8 +88,8 @@
                     <ol>
                         <li>Seleccione el cliente</li>
                         <li>Establezca el estado inicial</li>
+                        <li>Seleccione los productos y cantidades</li>
                         <li>Cree la orden</li>
-                        <li>Agregue productos a la orden</li>
                     </ol>
                     
                     <hr>
@@ -77,7 +107,7 @@
                     <div class="alert alert-info" role="alert">
                         <small>
                             <i class="fas fa-lightbulb"></i> 
-                            Después de crear la orden, podrá agregar productos desde la página de detalles.
+                            Puede agregar más productos después de crear la orden desde la página de detalles.
                         </small>
                     </div>
                 </div>
@@ -103,4 +133,102 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        $(document).ready(function() {
+            // Agregar producto
+            $("#addProductButton").click(function() {
+                // Si no hay productos seleccionados, limpia el contenedor
+                if ($("#selectedProductsContainer .alert").length > 0) {
+                    $("#selectedProductsContainer").empty();
+                }
+                
+                // Crear una fila de producto vacía
+                const index = $(".product-row").length;
+                const newRow = `
+                    <div class="row mb-3 product-row">
+                        <div class="col-md-6">
+                            <select name="SelectedProducts[${index}].ProductoId" class="form-control" required>
+                                <option value="">-- Seleccione un producto --</option>
+                                @if (ViewBag.Productos != null)
+                                {
+                                    @foreach (var producto in (List<Pedidos.Models.ProductoModel>)ViewBag.Productos)
+                                    {
+                                        <option value="@producto.Id">@producto.Nombre - $@producto.Precio.ToString("F2") (Stock: @producto.Stock)</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="input-group">
+                                <span class="input-group-text">Cantidad</span>
+                                <input name="SelectedProducts[${index}].Cantidad" type="number" class="form-control" min="1" value="1" required />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="button" class="btn btn-danger remove-product">
+                                <i class="fas fa-trash"></i> Quitar
+                            </button>
+                        </div>
+                    </div>
+                `;
+                $("#selectedProductsContainer").append(newRow);
+            });
+            
+            // Si no hay productos inicialmente, agregar uno
+            if ($("#selectedProductsContainer .product-row").length === 0) {
+                $("#addProductButton").click();
+            }
+            
+            // Eliminar producto
+            $(document).on("click", ".remove-product", function() {
+                $(this).closest(".product-row").remove();
+                
+                // Reindexar los nombres de los campos
+                $(".product-row").each(function(index) {
+                    $(this).find("select").attr("name", `SelectedProducts[${index}].ProductoId`);
+                    $(this).find("input[type='number']").attr("name", `SelectedProducts[${index}].Cantidad`);
+                });
+                
+                // Si no hay más filas, mostrar mensaje
+                if ($(".product-row").length === 0) {
+                    $("#selectedProductsContainer").html(`
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> No hay productos seleccionados. Agregue al menos un producto.
+                        </div>
+                    `);
+                }
+            });
+            
+            // Validación personalizada para el formulario
+            $("#createOrderForm").submit(function(e) {
+                if ($(".product-row").length === 0) {
+                    e.preventDefault();
+                    alert("Debe seleccionar al menos un producto para la orden.");
+                    $("#addProductButton").click();
+                    return false;
+                }
+                
+                // Verificar que todos los productos seleccionados sean diferentes
+                const selectedProducts = [];
+                let hasDuplicates = false;
+                
+                $(".product-row select").each(function() {
+                    const productId = $(this).val();
+                    if (productId && selectedProducts.includes(productId)) {
+                        hasDuplicates = true;
+                        $(this).addClass("is-invalid");
+                    } else {
+                        selectedProducts.push(productId);
+                        $(this).removeClass("is-invalid");
+                    }
+                });
+                
+                if (hasDuplicates) {
+                    e.preventDefault();
+                    alert("No puede seleccionar el mismo producto más de una vez. Si desea más unidades, aumente la cantidad.");
+                    return false;
+                }
+            });
+        });
+    </script>
 }

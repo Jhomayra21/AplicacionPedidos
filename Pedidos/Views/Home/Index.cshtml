@@ -22,11 +22,11 @@
                     }
                     else if (User.IsInRole("cliente"))
                     {
-                        <a asp-controller="Carrito" asp-action="CatalogoProductos" class="btn btn-primary btn-lg px-4 me-md-2">
-                            <i class="fas fa-store me-2"></i>Ver Catálogo
+                        <a asp-controller="Producto" asp-action="Index" class="btn btn-primary btn-lg px-4 me-md-2">
+                            <i class="fas fa-box me-2"></i>Ver Productos
                         </a>
-                        <a asp-controller="Carrito" asp-action="Index" class="btn btn-outline-light btn-lg px-4">
-                            <i class="fas fa-shopping-cart me-2"></i>Mi Carrito
+                        <a asp-controller="Orden" asp-action="Index" class="btn btn-outline-light btn-lg px-4">
+                            <i class="fas fa-receipt me-2"></i>Ver Pedidos
                         </a>
                     }
                     else
@@ -105,12 +105,12 @@
                         <div class="card h-100" style="border-color: #6D5A7C; border-radius: 10px;">
                             <div class="card-body text-center">
                                 <div class="mb-3">
-                                    <i class="fas fa-store fa-3x" style="color: #6D5A7C;"></i>
+                                    <i class="fas fa-box fa-3x" style="color: #6D5A7C;"></i>
                                 </div>
                                 <h5 class="card-title">Catálogo</h5>
                                 <p class="card-text">Explora todos nuestros productos disponibles.</p>
-                                <a asp-controller="Carrito" asp-action="CatalogoProductos" class="btn btn-sm" style="background-color: #6D5A7C; color: white;">
-                                    Comprar Ahora <i class="fas fa-arrow-right ms-1"></i>
+                                <a asp-controller="Producto" asp-action="Index" class="btn btn-sm" style="background-color: #6D5A7C; color: white;">
+                                    Ver Productos <i class="fas fa-arrow-right ms-1"></i>
                                 </a>
                             </div>
                         </div>
@@ -119,31 +119,17 @@
                         <div class="card h-100" style="border-color: #4E4259; border-radius: 10px;">
                             <div class="card-body text-center">
                                 <div class="mb-3">
-                                    <i class="fas fa-shopping-cart fa-3x" style="color: #4E4259;"></i>
-                                </div>
-                                <h5 class="card-title">Mi Carrito</h5>
-                                <p class="card-text">Revisa los productos en tu carrito de compras.</p>
-                                <a asp-controller="Carrito" asp-action="Index" class="btn btn-sm" style="background-color: #4E4259; color: white;">
-                                    Ver Carrito <i class="fas fa-arrow-right ms-1"></i>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6 mb-4">
-                        <div class="card h-100" style="border-color: #9D8AA8; border-radius: 10px;">
-                            <div class="card-body text-center">
-                                <div class="mb-3">
-                                    <i class="fas fa-box fa-3x" style="color: #9D8AA8;"></i>
+                                    <i class="fas fa-receipt fa-3x" style="color: #4E4259;"></i>
                                 </div>
                                 <h5 class="card-title">Mis Pedidos</h5>
-                                <p class="card-text">Consulta el estado de tus compras anteriores.</p>
-                                <a asp-controller="Carrito" asp-action="MisPedidos" class="btn btn-sm" style="background-color: #9D8AA8; color: white;">
+                                <p class="card-text">Revisa el historial de tus pedidos.</p>
+                                <a asp-controller="Orden" asp-action="Index" class="btn btn-sm" style="background-color: #4E4259; color: white;">
                                     Ver Pedidos <i class="fas fa-arrow-right ms-1"></i>
                                 </a>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6 mb-4">
+                    <div class="col-md-12 mb-4">
                         <div class="card h-100" style="border-color: #575E54; border-radius: 10px;">
                             <div class="card-body text-center">
                                 <div class="mb-3">
