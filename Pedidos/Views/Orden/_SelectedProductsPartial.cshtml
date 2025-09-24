@@ -2,7 +2,7 @@
 
 @for (int i = 0; i < Model.SelectedProducts.Count; i++)
 {
-    <div class="row mb-3 product-row">
+    <div class="row mb-3 product-row" style="background-color: #E1DBE6; padding: 10px; border-radius: 8px;">
         <div class="col-md-6">
             <select asp-for="SelectedProducts[i].ProductoId" class="form-control" required>
                 <option value="">-- Seleccione un producto --</option>
@@ -17,12 +17,12 @@
         </div>
         <div class="col-md-3">
             <div class="input-group">
-                <span class="input-group-text">Cantidad</span>
+                <span class="input-group-text" style="background-color: #9D8AA8; color: white;">Cantidad</span>
                 <input asp-for="SelectedProducts[i].Cantidad" type="number" class="form-control" min="1" value="1" required />
             </div>
         </div>
         <div class="col-md-3">
-            <button type="button" class="btn btn-danger remove-product">
+            <button type="button" class="btn remove-product" style="background-color: #4E4259; color: white;">
                 <i class="fas fa-trash"></i> Quitar
             </button>
         </div>

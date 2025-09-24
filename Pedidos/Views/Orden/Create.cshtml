@@ -41,15 +41,15 @@
                     <div class="form-text">Estado inicial de la orden</div>
                 </div>
                 
-                <div class="card mb-4">
-                    <div class="card-header bg-primary text-white">
+                <div class="card mb-4" style="border-color: #9D8AA8; border-radius: 10px; overflow: hidden;">
+                    <div class="card-header" style="background-color: #6D5A7C; color: white;">
                         <h5 class="mb-0"><i class="fas fa-shopping-cart"></i> Productos en la Orden</h5>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body" style="background-color: #F2F2F7;">
                         <div id="selectedProductsContainer">
                             @if (Model.SelectedProducts == null || !Model.SelectedProducts.Any())
                             {
-                                <div class="alert alert-info">
+                                <div class="alert" role="alert" style="background-color: #E1DBE6; border-color: #D0C6D8; color: #4E4259;">
                                     <i class="fas fa-info-circle"></i> No hay productos seleccionados. Agregue al menos un producto.
                                 </div>
                             }
@@ -60,7 +60,7 @@
                         </div>
                         
                         <div class="mt-3">
-                            <button type="button" id="addProductButton" class="btn btn-success">
+                            <button type="button" id="addProductButton" class="btn" style="background-color: #4E4259; color: white;">
                                 <i class="fas fa-plus"></i> Agregar otro producto
                             </button>
                         </div>
@@ -68,10 +68,10 @@
                 </div>
                 
                 <div class="form-group mb-3">
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn" style="background-color: #6D5A7C; color: white;">
                         <i class="fas fa-save"></i> Crear Orden
                     </button>
-                    <a asp-action="Index" class="btn btn-secondary">
+                    <a asp-action="Index" class="btn" style="background-color: #9D8AA8; color: white;">
                         <i class="fas fa-times"></i> Cancelar
                     </a>
                 </div>
@@ -79,12 +79,12 @@
         </div>
         
         <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
+            <div class="card" style="border-color: #9D8AA8; border-radius: 10px;">
+                <div class="card-header" style="background-color: #6D5A7C; color: white;">
                     <h5><i class="fas fa-info-circle"></i> Información</h5>
                 </div>
                 <div class="card-body">
-                    <h6>Proceso de creación:</h6>
+                    <h6 style="color: #4E4259;">Proceso de creación:</h6>
                     <ol>
                         <li>Seleccione el cliente</li>
                         <li>Establezca el estado inicial</li>
@@ -94,17 +94,17 @@
                     
                     <hr>
                     
-                    <h6>Estados de orden:</h6>
+                    <h6 style="color: #4E4259;">Estados de orden:</h6>
                     <ul class="list-unstyled">
-                        <li><span class="badge bg-warning">Pendiente</span> Recién creada</li>
-                        <li><span class="badge bg-info">Procesado</span> En preparación</li>
-                        <li><span class="badge bg-primary">Enviado</span> En tránsito</li>
-                        <li><span class="badge bg-success">Entregado</span> Completada</li>
+                        <li><span class="badge" style="background-color: #B69FBA; color: white;">Pendiente</span> Recién creada</li>
+                        <li><span class="badge" style="background-color: #9D8AA8; color: white;">Procesado</span> En preparación</li>
+                        <li><span class="badge" style="background-color: #6D5A7C; color: white;">Enviado</span> En tránsito</li>
+                        <li><span class="badge" style="background-color: #575E54; color: white;">Entregado</span> Completada</li>
                     </ul>
                     
                     <hr>
                     
-                    <div class="alert alert-info" role="alert">
+                    <div class="alert" role="alert" style="background-color: #E1DBE6; border-color: #D0C6D8; color: #4E4259;">
                         <small>
                             <i class="fas fa-lightbulb"></i> 
                             Puede agregar más productos después de crear la orden desde la página de detalles.
@@ -115,13 +115,13 @@
             
             @if (ViewBag.Clientes != null && !((List<Pedidos.Models.UserModel>)ViewBag.Clientes).Any())
             {
-                <div class="card mt-3 border-warning">
-                    <div class="card-header bg-warning">
+                <div class="card mt-3" style="border-color: #B69FBA; border-radius: 10px;">
+                    <div class="card-header" style="background-color: #B69FBA; color: white;">
                         <h6><i class="fas fa-exclamation-triangle"></i> Advertencia</h6>
                     </div>
                     <div class="card-body">
                         <p>No hay clientes registrados en el sistema.</p>
-                        <a asp-controller="User" asp-action="Create" class="btn btn-sm btn-primary">
+                        <a asp-controller="User" asp-action="Create" class="btn btn-sm" style="background-color: #6D5A7C; color: white;">
                             <i class="fas fa-user-plus"></i> Crear Cliente
                         </a>
                     </div>
@@ -145,7 +145,7 @@
                 // Crear una fila de producto vacía
                 const index = $(".product-row").length;
                 const newRow = `
-                    <div class="row mb-3 product-row">
+                    <div class="row mb-3 product-row" style="background-color: #E1DBE6; padding: 10px; border-radius: 8px;">
                         <div class="col-md-6">
                             <select name="SelectedProducts[${index}].ProductoId" class="form-control" required>
                                 <option value="">-- Seleccione un producto --</option>
@@ -160,12 +160,12 @@
                         </div>
                         <div class="col-md-3">
                             <div class="input-group">
-                                <span class="input-group-text">Cantidad</span>
+                                <span class="input-group-text" style="background-color: #9D8AA8; color: white;">Cantidad</span>
                                 <input name="SelectedProducts[${index}].Cantidad" type="number" class="form-control" min="1" value="1" required />
                             </div>
                         </div>
                         <div class="col-md-3">
-                            <button type="button" class="btn btn-danger remove-product">
+                            <button type="button" class="btn remove-product" style="background-color: #4E4259; color: white;">
                                 <i class="fas fa-trash"></i> Quitar
                             </button>
                         </div>
@@ -192,7 +192,7 @@
                 // Si no hay más filas, mostrar mensaje
                 if ($(".product-row").length === 0) {
                     $("#selectedProductsContainer").html(`
-                        <div class="alert alert-info">
+                        <div class="alert" role="alert" style="background-color: #E1DBE6; border-color: #D0C6D8; color: #4E4259;">
                             <i class="fas fa-info-circle"></i> No hay productos seleccionados. Agregue al menos un producto.
                         </div>
                     `);
