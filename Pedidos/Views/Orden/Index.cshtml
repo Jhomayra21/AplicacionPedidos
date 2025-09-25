@@ -6,7 +6,9 @@
 
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="mb-0" style="color: #4E4259;">@ViewData["Title"]</h1>
+        <h1 class="mb-0" style="color: #4E4259;">
+            <i class="fas fa-receipt me-2"></i>@ViewData["Title"]
+        </h1>
         <a asp-action="Create" class="btn" style="background-color: #6D5A7C; color: white;">
             <i class="fas fa-plus"></i> Crear Nueva Orden
         </a>
@@ -20,160 +22,305 @@
         </div>
     }
 
-    @if (TempData["Error"] != null)
+    @if (TempData["Error"] != null || ViewBag.Error != null)
     {
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="fas fa-exclamation-circle me-2"></i> @TempData["Error"]
+            <i class="fas fa-exclamation-circle me-2"></i> @(TempData["Error"] ?? ViewBag.Error)
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
 
-    @if (ViewBag.Error != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="fas fa-exclamation-circle me-2"></i> @ViewBag.Error
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-
-    <div class="card" style="border-color: #9D8AA8; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
-        <div class="card-header" style="background-color: #6D5A7C; color: white;">
-            <i class="fas fa-list-ul"></i> Órdenes Registradas
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead style="background-color: #4E4259; color: white;">
-                        <tr>
-                            <th class="px-3">Orden #</th>
-                            <th>Cliente</th>
-                            <th>Fecha</th>
-                            <th>Estado</th>
-                            <th>Items</th>
-                            <th>Total</th>
-                            <th class="text-center">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model)
-                        {
-                            <tr style="border-bottom: 1px solid #E1DBE6;">
-                                <td class="px-3">
-                                    <strong style="color: #4E4259;">#@item.Id</strong>
-                                </td>
-                                <td>
-                                    @if (item.Cliente != null)
-                                    {
-                                        <div>
-                                            <strong>@item.Cliente.Nombre</strong>
-                                            <br><small class="text-muted">@item.Cliente.Email</small>
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">Cliente no encontrado</span>
-                                    }
-                                </td>
-                                <td>
-                                    <div>
-                                        @item.Fecha.ToString("dd/MM/yyyy")
-                                        <br><small class="text-muted">@item.Fecha.ToString("HH:mm")</small>
-                                    </div>
-                                </td>
-                                <td>
-                                    @{
-                                        var badgeBg = item.Estado == "Pendiente" ? "#B69FBA" :
-                                            item.Estado == "Procesado" ? "#9D8AA8" :
-                                            item.Estado == "Enviado" ? "#6D5A7C" :
-                                            item.Estado == "Entregado" ? "#575E54" : "#4E4259";
-                                    }
-                                    <span class="badge" style="background-color: @badgeBg; color: white; padding: 6px 10px;">
-                                        @item.Estado
-                                    </span>
-                                </td>
-                                <td>
-                                    <span class="badge" style="background-color: #9D8AA8; color: white; padding: 6px 10px;">
-                                        @item.Items.Count productos
-                                    </span>
-                                    @if (item.Items.Any())
-                                    {
-                                        <br><small class="text-muted">@item.Items.Sum(i => i.Cantidad) unidades</small>
-                                    }
-                                </td>
-                                <td>
-                                    <span class="fw-bold" style="color: #4E4259;">$@item.Total.ToString("F2")</span>
-                                </td>
-                                <td>
-                                    <div class="d-flex justify-content-center gap-2">
-                                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm" style="background-color: #E1DBE6; color: #4E4259;" title="Ver Detalles">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm" style="background-color: #9D8AA8; color: white;" title="Editar">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        @if (item.Estado == "Pendiente" && (User.IsInRole("admin") || User.IsInRole("empleado")))
-                                        {
-                                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm" style="background-color: #4E4259; color: white;" title="Eliminar">
-                                                <i class="fas fa-trash"></i>
-                                            </a>
-                                        }
-                                    </div>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    @if (!Model.Any())
-    {
-        <div class="alert mt-4" role="alert" style="background-color: #E1DBE6; color: #4E4259; border-color: #D0C6D8;">
-            <h4 class="alert-heading"><i class="fas fa-info-circle me-2"></i> No hay órdenes registradas</h4>
-            <p>No se encontraron órdenes en el sistema.</p>
-            <hr style="background-color: #D0C6D8;">
-            <p class="mb-0">
-                <a asp-action="Create" class="btn" style="background-color: #6D5A7C; color: white;">Crear la primera orden</a>
-            </p>
-        </div>
-    }
-
+    <!-- Estadísticas de órdenes -->
     @if (Model.Any())
     {
-        <div class="row mt-4 g-4">
+        <div class="row mb-4 g-3">
             <div class="col-md-3">
-                <div class="card text-center h-100" style="border-radius: 10px; border-color: #E1DBE6;">
-                    <div class="card-body">
-                        <h5 class="card-title" style="color: #6D5A7C; font-size: 2rem;">@Model.Count()</h5>
-                        <p class="card-text" style="color: #4E4259;"><i class="fas fa-clipboard-list me-2"></i>Total Órdenes</p>
+                <div class="card border-0 h-100" style="background: linear-gradient(135deg, #6D5A7C, #9D8AA8); color: white; border-radius: 15px; overflow: hidden;">
+                    <div class="card-body text-center py-3">
+                        <i class="fas fa-clipboard-list fa-2x mb-2 opacity-75"></i>
+                        <h3 class="mb-0">@Model.Count()</h3>
+                        <small>Total Órdenes</small>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card text-center h-100" style="border-radius: 10px; border-color: #E1DBE6;">
-                    <div class="card-body">
-                        <h5 class="card-title" style="color: #B69FBA; font-size: 2rem;">@Model.Count(o => o.Estado == "Pendiente")</h5>
-                        <p class="card-text" style="color: #4E4259;"><i class="fas fa-clock me-2"></i>Pendientes</p>
+                <div class="card border-0 h-100" style="background: linear-gradient(135deg, #B69FBA, #E1DBE6); color: #4E4259; border-radius: 15px; overflow: hidden;">
+                    <div class="card-body text-center py-3">
+                        <i class="fas fa-clock fa-2x mb-2 opacity-75"></i>
+                        <h3 class="mb-0">@Model.Count(o => o.Estado == "Pendiente")</h3>
+                        <small>Pendientes</small>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card text-center h-100" style="border-radius: 10px; border-color: #E1DBE6;">
-                    <div class="card-body">
-                        <h5 class="card-title" style="color: #575E54; font-size: 2rem;">@Model.Count(o => o.Estado == "Entregado")</h5>
-                        <p class="card-text" style="color: #4E4259;"><i class="fas fa-check-circle me-2"></i>Entregadas</p>
+                <div class="card border-0 h-100" style="background: linear-gradient(135deg, #575E54, #9D8AA8); color: white; border-radius: 15px; overflow: hidden;">
+                    <div class="card-body text-center py-3">
+                        <i class="fas fa-check-circle fa-2x mb-2 opacity-75"></i>
+                        <h3 class="mb-0">@Model.Count(o => o.Estado == "Entregado")</h3>
+                        <small>Entregadas</small>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card text-center h-100" style="border-radius: 10px; border-color: #E1DBE6;">
-                    <div class="card-body">
-                        <h5 class="card-title" style="color: #4E4259; font-size: 2rem;">$@Model.Sum(o => o.Total).ToString("F2")</h5>
-                        <p class="card-text" style="color: #4E4259;"><i class="fas fa-dollar-sign me-2"></i>Total Ventas</p>
+                <div class="card border-0 h-100" style="background: linear-gradient(135deg, #4E4259, #6D5A7C); color: white; border-radius: 15px; overflow: hidden;">
+                    <div class="card-body text-center py-3">
+                        <i class="fas fa-dollar-sign fa-2x mb-2 opacity-75"></i>
+                        <h3 class="mb-0" style="font-size: 1.5rem;">$@Model.Sum(o => o.Total).ToString("F2")</h3>
+                        <small>Total Ventas</small>
                     </div>
                 </div>
             </div>
         </div>
     }
+
+    <!-- Tabla moderna de órdenes -->
+    <div class="card border-0 shadow-sm" style="border-radius: 15px; overflow: hidden;">
+        <div class="card-header border-0" style="background: linear-gradient(135deg, #2B2B35, #4E4259); color: white; padding: 1.5rem;">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-table me-2"></i>Órdenes Registradas (@Model.Count())
+                </h5>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-light" onclick="filterOrders()">
+                        <i class="fas fa-filter me-1"></i>Filtrar
+                    </button>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-sort me-1"></i>Ordenar
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" onclick="sortBy('date')">Por Fecha</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="sortBy('total')">Por Total</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="sortBy('status')">Por Estado</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 modern-orders-table">
+                        <thead>
+                            <tr style="background-color: #F8F9FA;">
+                                <th class="border-0 py-3 px-4" style="color: #4E4259; font-weight: 600;">
+                                    <i class="fas fa-hashtag me-2"></i>Orden
+                                </th>
+                                <th class="border-0 py-3 px-4" style="color: #4E4259; font-weight: 600;">
+                                    <i class="fas fa-user me-2"></i>Cliente
+                                </th>
+                                <th class="border-0 py-3 px-4" style="color: #4E4259; font-weight: 600;">
+                                    <i class="fas fa-calendar me-2"></i>Fecha
+                                </th>
+                                <th class="border-0 py-3 px-4" style="color: #4E4259; font-weight: 600;">
+                                    <i class="fas fa-info-circle me-2"></i>Estado
+                                </th>
+                                <th class="border-0 py-3 px-4" style="color: #4E4259; font-weight: 600;">
+                                    <i class="fas fa-shopping-cart me-2"></i>Items
+                                </th>
+                                <th class="border-0 py-3 px-4" style="color: #4E4259; font-weight: 600;">
+                                    <i class="fas fa-dollar-sign me-2"></i>Total
+                                </th>
+                                <th class="border-0 py-3 px-4 text-center" style="color: #4E4259; font-weight: 600;">
+                                    <i class="fas fa-cogs me-2"></i>Acciones
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr class="order-row" style="transition: all 0.3s ease; border-bottom: 1px solid #E9ECEF;">
+                                    <td class="py-3 px-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="order-badge me-3" 
+                                                 style="width: 35px; height: 35px; border-radius: 8px; 
+                                                        background: linear-gradient(135deg, #6D5A7C, #9D8AA8); 
+                                                        display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.8rem;">
+                                                #@item.Id.ToString().PadLeft(3, '0')
+                                            </div>
+                                            <small class="text-muted">ID: @item.Id</small>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        @if (item.Cliente != null)
+                                        {
+                                            <div class="d-flex align-items-center">
+                                                <div class="client-avatar me-3" 
+                                                     style="width: 35px; height: 35px; border-radius: 50%; 
+                                                            background: linear-gradient(135deg, #4E4259, #6D5A7C); 
+                                                            display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.9rem;">
+                                                    @item.Cliente.Nombre.FirstOrDefault()
+                                                </div>
+                                                <div>
+                                                    <div class="fw-semibold" style="color: #2B2B35;">@item.Cliente.Nombre</div>
+                                                    <small class="text-muted">@item.Cliente.Email</small>
+                                                </div>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="d-flex align-items-center text-muted">
+                                                <i class="fas fa-user-slash me-2"></i>
+                                                <span>Cliente no encontrado</span>
+                                            </div>
+                                        }
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <div>
+                                            <div class="fw-semibold" style="color: #4E4259;">@item.Fecha.ToString("dd/MM/yyyy")</div>
+                                            <small class="text-muted">@item.Fecha.ToString("HH:mm")</small>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        @{
+                                            var statusConfig = item.Estado switch
+                                            {
+                                                "Pendiente" => new { Bg = "#FFC107", Icon = "fas fa-clock", TextColor = "#000" },
+                                                "Procesado" => new { Bg = "#17A2B8", Icon = "fas fa-cogs", TextColor = "#FFF" },
+                                                "Enviado" => new { Bg = "#6D5A7C", Icon = "fas fa-shipping-fast", TextColor = "#FFF" },
+                                                "Entregado" => new { Bg = "#28A745", Icon = "fas fa-check-circle", TextColor = "#FFF" },
+                                                _ => new { Bg = "#6C757D", Icon = "fas fa-question", TextColor = "#FFF" }
+                                            };
+                                        }
+                                        <span class="badge status-badge" 
+                                              style="background-color: @statusConfig.Bg; color: @statusConfig.TextColor; 
+                                                     padding: 8px 15px; border-radius: 20px; font-weight: 500; font-size: 0.85rem;">
+                                            <i class="@statusConfig.Icon me-1"></i>
+                                            @item.Estado
+                                        </span>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <div class="d-flex flex-column">
+                                            <span class="badge items-badge mb-1" 
+                                                  style="background-color: #9D8AA8; color: white; padding: 6px 12px; border-radius: 15px; font-size: 0.8rem; width: fit-content;">
+                                                <i class="fas fa-boxes me-1"></i>
+                                                @item.Items.Count productos
+                                            </span>
+                                            @if (item.Items.Any())
+                                            {
+                                                <small class="text-muted">
+                                                    <i class="fas fa-cubes me-1"></i>
+                                                    @item.Items.Sum(i => i.Cantidad) unidades
+                                                </small>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <div class="total-amount" 
+                                             style="background: linear-gradient(135deg, #E1DBE6, #F8F9FA); 
+                                                    padding: 8px 15px; border-radius: 10px; display: inline-block;">
+                                            <span class="fw-bold" style="color: #4E4259; font-size: 1.1rem;">
+                                                $@item.Total.ToString("F2")
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 text-center">
+                                        <div class="btn-group shadow-sm" role="group">
+                                            <a asp-action="Details" asp-route-id="@item.Id" 
+                                               class="btn btn-sm action-btn" 
+                                               style="background-color: #E1DBE6; color: #4E4259; border: none; padding: 8px 12px; border-radius: 8px 0 0 8px;" 
+                                               title="Ver Detalles">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a asp-action="Edit" asp-route-id="@item.Id" 
+                                               class="btn btn-sm action-btn" 
+                                               style="background-color: #9D8AA8; color: white; border: none; padding: 8px 12px; margin-left: 1px;" 
+                                               title="Editar Orden">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            @if (item.Estado == "Pendiente" && (User.IsInRole("admin") || User.IsInRole("empleado")))
+                                            {
+                                                <a asp-action="Delete" asp-route-id="@item.Id" 
+                                                   class="btn btn-sm action-btn" 
+                                                   style="background-color: #4E4259; color: white; border: none; padding: 8px 12px; border-radius: 0 8px 8px 0; margin-left: 1px;" 
+                                                   title="Eliminar Orden"
+                                                   onclick="return confirm('¿Estás seguro de que deseas eliminar esta orden?')">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-receipt fa-3x mb-3" style="color: #E1DBE6;"></i>
+                    <h4 style="color: #4E4259;">No hay órdenes registradas</h4>
+                    <p class="text-muted mb-4">Comienza creando la primera orden en el sistema.</p>
+                    <a asp-action="Create" class="btn" style="background-color: #6D5A7C; color: white;">
+                        <i class="fas fa-plus me-2"></i>Crear Primera Orden
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
 </div>
+
+<style>
+.modern-orders-table tbody tr:hover {
+    background-color: #F8F9FA;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.action-btn {
+    transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.order-badge, .client-avatar {
+    transition: all 0.3s ease;
+}
+
+.order-row:hover .order-badge,
+.order-row:hover .client-avatar {
+    transform: scale(1.1);
+}
+
+.status-badge {
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.status-badge:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.items-badge {
+    transition: all 0.3s ease;
+}
+
+.items-badge:hover {
+    transform: scale(1.05);
+}
+
+.total-amount {
+    transition: all 0.3s ease;
+}
+
+.order-row:hover .total-amount {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+</style>
+
+<script>
+function filterOrders() {
+    alert('Función de filtrado próximamente disponible');
+}
+
+function sortBy(criteria) {
+    alert('Ordenando por: ' + criteria + ' - Función próximamente disponible');
+}
+</script>

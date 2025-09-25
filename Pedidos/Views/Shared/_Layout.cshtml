@@ -7,16 +7,15 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Pedidos.styles.css" asp-append-version="true" />
-    <!-- FontAwesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <style>
         :root {
-            --color-primary: #6D5A7C; /* Morado medio */
-            --color-secondary: #E1DBE6; /* Lavanda muy claro */
-            --color-accent: #4E4259; /* Morado oscuro */
-            --color-dark: #2B2B35; /* Negro/Azul muy oscuro */
-            --color-light: #F2F2F7; /* Blanco grisáceo */
-            --color-dark-accent: #575E54; /* Verde grisáceo oscuro (tono más sobrio) */
+            --color-primary: #6D5A7C; 
+            --color-secondary: #E1DBE6; 
+            --color-accent: #4E4259; 
+            --color-dark: #2B2B35; 
+            --color-light: #F2F2F7; 
+            --color-dark-accent: #575E54; 
         }
 
         body {
@@ -51,7 +50,7 @@
         }
 
         .btn-primary:hover, .btn-primary:focus {
-            background-color: #5A4B69; /* Morado un poco más oscuro */
+            background-color: #5A4B69; 
             border-color: #5A4B69;
         }
 
@@ -80,15 +79,15 @@
         }
 
         .badge.bg-info {
-            background-color: #9D8AA8 !important; /* Morado más claro */
+            background-color: #9D8AA8 !important; 
         }
 
         .badge.bg-warning {
-            background-color: #B69FBA !important; /* Lavanda medio */
+            background-color: #B69FBA !important; 
         }
 
         .badge.bg-danger {
-            background-color: #6D5A7C !important; /* Usando el morado principal */
+            background-color: #6D5A7C !important; 
         }
 
         .table-dark {
@@ -109,16 +108,29 @@
             color: var(--color-primary) !important;
         }
 
-        /* Estilos para forms y botones */
         .form-control:focus {
             border-color: var(--color-primary);
             box-shadow: 0 0 0 0.25rem rgba(109, 90, 124, 0.25);
+        }
+
+        .navbar .fas {
+            font-size: 0.9rem;
+            margin-right: 6px;
+        }
+
+        .footer .fas {
+            font-size: 0.8rem;
+        }
+
+        .main-content {
+            padding-bottom: 4rem;
+            min-height: calc(100vh - 200px); 
         }
     </style>
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark border-bottom box-shadow mb-4">
             <div class="container-fluid">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
                     <i class="fas fa-shopping-cart"></i> Sistema de Pedidos
@@ -197,14 +209,15 @@
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
+    
+    <div class="container main-content">
+        <main role="main" class="pb-5">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container py-3">
+    <footer class="border-top footer text-muted mt-5">
+        <div class="container py-4">
             <div class="row">
                 <div class="col-md-6">
                     &copy; 2025 - Sistema de Pedidos - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacidad</a>
@@ -215,6 +228,7 @@
             </div>
         </div>
     </footer>
+    
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
